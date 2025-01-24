@@ -1,0 +1,33 @@
+Agregados:
+
+[x] - É o único ponto de entrada para todo o agregado e mantém as regras de negócio
+[x] - Todas as referências externas e mudanças devem passar pela raiz do agregado
+[x] - Objetos internos não podem ser referenciados diretamente por objetos externos
+[ ] - O agregado inteiro é carregado e salvo como uma única unidade
+[ ] - Quando a raiz é excluída, todos os objetos dentro do agregado também são excluídos
+[ ] - Representa uma fronteira transacional - todas as mudanças devem ser consistentes ao fim de cada transação
+[ ] - Agregados diferentes podem ser modificados em transações diferentes
+[ ] - Relacionamentos entre agregados diferentes podem ser eventualmente consistentes
+[x] - Devem ser tão pequenos quanto possível, mantendo as invariantes
+[x] - Inclua objetos apenas se precisarem ser consistentes com outros objetos do agregado
+[x] - O design deve ser baseado em regras de negócio, não em relacionamentos de dados
+[x] - Cada agregado deve poder ser modificado independentemente
+[x] - Referencie outros agregados por ID, nunca por referência direta
+[ ] - Mudanças entre fronteiras de agregados devem ser tratadas através de eventos de domínio
+
+Fábricas:
+[x] - Encapsulam a lógica complexa de criação de agregados e seus objetos internos
+[x] - Garantem que o agregado seja criado em um estado válido e consistente
+[x] - Fornecem uma interface clara para criar objetos complexos
+[x] - Factory Method - Método dentro do próprio agregado que cria instâncias relacionadas
+[x] - Abstract Factory - Interface que cria famílias de objetos relacionados
+
+Repositórios:
+[ ] - Fornecem uma abstração para persistência e recuperação de agregados
+[ ] - Encapsulam a complexidade do acesso a dados
+[ ] - Mantêm o domínio livre de detalhes de infraestrutura
+[ ] - Trabalham com agregados completos, não com objetos individuais
+[ ] - Cada tipo de agregado geralmente tem seu próprio repositório
+[ ] - Métodos comuns: adicionar, remover, buscar por ID, buscar por critérios
+[ ] - Repositórios não devem ser usados para consultas complexas - prefira leitura direta, usando um padrão como CQRS ou DAO
+[ ] - Considerar usar o Unit of Work
