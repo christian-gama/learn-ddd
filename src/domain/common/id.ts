@@ -7,6 +7,10 @@ export class Id implements ValueObject {
 		}
 	}
 
+	static fromString(value: string) {
+		return new Id(value);
+	}
+
 	static generate() {
 		return new Id(Bun.randomUUIDv7());
 	}

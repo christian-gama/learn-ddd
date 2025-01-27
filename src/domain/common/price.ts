@@ -7,6 +7,10 @@ export class Price implements ValueObject {
 		this.cents = Math.round(value * 100);
 	}
 
+	static fromNumber(value: number) {
+		return new Price(value);
+	}
+
 	add(amount: Price) {
 		return new Price(this.valueOf() + amount.valueOf());
 	}

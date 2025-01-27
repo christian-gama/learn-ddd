@@ -5,14 +5,20 @@ import { Price } from "../common/price";
 import type { ToJSON } from "../common/toJSON";
 import { Item } from "./item";
 
+enum OrderStatus {
+	PLACED = "PLACED",
+	DELIVERED = "DELIVERED",
+	CANCELLED = "CANCELLED",
+}
+
 export class Order extends Aggregate {
 	protected constructor(
 		readonly id: Id,
-		public customerId: Id,
-		public deliveryPersonId: Id,
+		readonly customerId: Id,
+		private _deliveryPersonId: Id,
 		private _address: Address,
 		private _items: Item[],
-		public createdAt: Date,
+		private _status: OrderStatus,
 	) {
 		super();
 	}
@@ -24,7 +30,7 @@ export class Order extends Aggregate {
 			input.deliveryPersonId,
 			input.address,
 			[],
-			new Date(),
+			OrderStatus.PLACED,
 		);
 	}
 
@@ -35,7 +41,7 @@ export class Order extends Aggregate {
 			new Id(input.deliveryPersonId),
 			Address.fromJSON(input.address),
 			input.items.map(Item.fromJSON),
-			new Date(input.createdAt),
+			input.status as OrderStatus,
 		);
 
 		return order;
@@ -47,8 +53,8 @@ export class Order extends Aggregate {
 			customerId: this.customerId.toString(),
 			deliveryPersonId: this.deliveryPersonId.toString(),
 			address: this._address.toJSON(),
-			createdAt: this.createdAt.toISOString(),
 			items: this._items.map((item) => item.toJSON()),
+			status: this._status,
 		};
 	}
 
@@ -75,6 +81,38 @@ export class Order extends Aggregate {
 			(total, item) => total.add(item.getTotal()),
 			new Price(0),
 		);
+	}
+
+	reassignDeliveryPerson(deliveryPersonId: Id) {
+		if (this._status !== OrderStatus.PLACED) {
+			throw new Error("Order is not in PLACED status");
+		}
+
+		this._deliveryPersonId = deliveryPersonId;
+	}
+
+	cancel() {
+		if (this._status !== OrderStatus.PLACED) {
+			throw new Error("Order is not in PLACED status");
+		}
+
+		this._status = OrderStatus.CANCELLED;
+	}
+
+	deliver() {
+		if (this._status !== OrderStatus.PLACED) {
+			throw new Error("Order is not in PLACED status");
+		}
+
+		this._status = OrderStatus.DELIVERED;
+	}
+
+	get status(): OrderStatus {
+		return this._status;
+	}
+
+	get deliveryPersonId(): Id {
+		return this._deliveryPersonId;
 	}
 
 	get items(): ReadonlyArray<Readonly<Item>> {

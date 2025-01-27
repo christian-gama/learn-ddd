@@ -7,6 +7,10 @@ export class Zip implements ValueObject {
 		}
 	}
 
+	static fromString(value: string) {
+		return new Zip(value);
+	}
+
 	format() {
 		return `${this.value.slice(0, 5)}-${this.value.slice(5)}`;
 	}

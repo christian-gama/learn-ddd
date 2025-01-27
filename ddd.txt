@@ -23,11 +23,11 @@ Fábricas:
 [x] - Abstract Factory - Interface que cria famílias de objetos relacionados
 
 Repositórios:
-[ ] - Fornecem uma abstração para persistência e recuperação de agregados
-[ ] - Encapsulam a complexidade do acesso a dados
-[ ] - Mantêm o domínio livre de detalhes de infraestrutura
-[ ] - Trabalham com agregados completos, não com objetos individuais
-[ ] - Cada tipo de agregado geralmente tem seu próprio repositório
-[ ] - Métodos comuns: adicionar, remover, buscar por ID, buscar por critérios
+[x] - Fornecem uma abstração para persistência e recuperação de agregados
+[x] - Encapsulam a complexidade do acesso a dados
+[x] - Mantêm o domínio livre de detalhes de infraestrutura
+[x] - Trabalham com agregados completos, não com objetos individuais
+[x] - Cada tipo de agregado geralmente tem seu próprio repositório
+[x] - Métodos comuns: adicionar, remover, buscar por ID, buscar por critérios
 [ ] - Repositórios não devem ser usados para consultas complexas - prefira leitura direta, usando um padrão como CQRS ou DAO
 [ ] - Considerar usar o Unit of Work
