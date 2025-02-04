@@ -15,7 +15,7 @@ export class Item implements Entity {
 
 	static create(input: CreateItemInput) {
 		const item = new Item(
-			input.id,
+			Id.generate(),
 			input.name,
 			input.price,
 			input.category,
@@ -78,71 +78,9 @@ export class Item implements Entity {
 }
 
 type CreateItemInput = {
-	id: Id;
 	name: string;
 	price: Price;
 	sku: string;
 	category: string;
 	quantity: number;
 };
-
-// interface ItemFactory {
-// 	create(input: any): Item;
-// }
-
-// export class SportsItemFactory implements ItemFactory {
-// 	create(input: {
-// 		id: Id;
-// 		name: string;
-// 		price: Price;
-// 		sku: string;
-// 		quantity: number;
-// 	}) {
-// 		return Item.create({
-// 			id: input.id,
-// 			name: input.name,
-// 			price: input.price,
-// 			sku: input.sku,
-// 			quantity: input.quantity,
-// 			category: "Sports",
-// 		});
-// 	}
-// }
-
-// export class ElectronicsItemFactory implements ItemFactory {
-// 	create(input: {
-// 		id: Id;
-// 		name: string;
-// 		price: Price;
-// 		sku: string;
-// 		quantity: number;
-// 	}) {
-// 		return Item.create({
-// 			id: input.id,
-// 			name: input.name,
-// 			price: input.price,
-// 			sku: input.sku,
-// 			quantity: input.quantity,
-// 			category: "Electronics",
-// 		});
-// 	}
-// }
-
-// export class BooksItemFactory implements ItemFactory {
-// 	create(input: {
-// 		id: Id;
-// 		name: string;
-// 		price: Price;
-// 		sku: string;
-// 		quantity: number;
-// 	}) {
-// 		return Item.create({
-// 			id: Id.generate(),
-// 			name: input.name,
-// 			price: input.price,
-// 			sku: input.sku,
-// 			quantity: input.quantity,
-// 			category: "Books",
-// 		});
-// 	}
-// }

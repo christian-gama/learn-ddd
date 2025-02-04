@@ -5,7 +5,7 @@ import { Price } from "../common/price";
 import type { ToJSON } from "../common/toJSON";
 import { Item } from "./item";
 
-enum OrderStatus {
+export enum OrderStatus {
 	PLACED = "PLACED",
 	DELIVERED = "DELIVERED",
 	CANCELLED = "CANCELLED",
@@ -24,12 +24,16 @@ export class Order extends Aggregate {
 	}
 
 	static create(input: CreateOrderInput) {
+		if (input.items.length === 0) {
+			throw new Error("Order item cannot be empty");
+		}
+
 		return new Order(
-			input.id,
+			Id.generate(),
 			input.customerId,
 			input.deliveryPersonId,
 			input.address,
-			[],
+			input.items,
 			OrderStatus.PLACED,
 		);
 	}
@@ -67,6 +71,19 @@ export class Order extends Aggregate {
 		this._items.push(item);
 	}
 
+	deleteItem(id: Id) {
+		if (this._items.length === 1) {
+			throw new Error("Order item cannot be empty");
+		}
+
+		const itemIndex = this._items.findIndex((i) => i.id.equals(id));
+		if (itemIndex === -1) {
+			throw new Error("Item not found");
+		}
+
+		this._items.splice(itemIndex, 1);
+	}
+
 	updateItemName(id: Id, name: string) {
 		const itemIndex = this._items.findIndex((i) => i.id.equals(id));
 		if (itemIndex === -1) {
@@ -84,11 +101,17 @@ export class Order extends Aggregate {
 	}
 
 	reassignDeliveryPerson(deliveryPersonId: Id) {
-		if (this._status !== OrderStatus.PLACED) {
-			throw new Error("Order is not in PLACED status");
-		}
+		switch (this._status) {
+			case OrderStatus.DELIVERED:
+				throw new Error("Cannot reassign delivery person for delivered order");
 
-		this._deliveryPersonId = deliveryPersonId;
+			case OrderStatus.CANCELLED:
+				throw new Error("Cannot reassign delivery person for cancelled order");
+
+			default:
+				this._deliveryPersonId = deliveryPersonId;
+				break;
+		}
 	}
 
 	cancel() {
@@ -121,8 +144,8 @@ export class Order extends Aggregate {
 }
 
 export type CreateOrderInput = {
-	id: Id;
 	customerId: Id;
 	deliveryPersonId: Id;
 	address: Address;
+	items: Item[];
 };

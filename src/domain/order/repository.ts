@@ -6,5 +6,4 @@ export interface OrderRepository {
 	update(order: Order): Promise<void>;
 	findById(id: Id): Promise<Order | null>;
 	deleteById(order: Order): Promise<void>;
-	nextId(): Promise<Id>;
 }

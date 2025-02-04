@@ -2,7 +2,7 @@ import type { ValueObject } from "./value-object";
 
 export class Zip implements ValueObject {
 	constructor(readonly value: string) {
-		if (!/^\d{8}$/.test(value)) {
+		if (!/^\d{5}-\d{3}$/.test(value)) {
 			throw new Error("Invalid zip code");
 		}
 	}

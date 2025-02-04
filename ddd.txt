@@ -3,9 +3,9 @@ Agregados:
 [x] - É o único ponto de entrada para todo o agregado e mantém as regras de negócio
 [x] - Todas as referências externas e mudanças devem passar pela raiz do agregado
 [x] - Objetos internos não podem ser referenciados diretamente por objetos externos
-[ ] - O agregado inteiro é carregado e salvo como uma única unidade
+[x] - O agregado inteiro é carregado e salvo como uma única unidade
 [ ] - Quando a raiz é excluída, todos os objetos dentro do agregado também são excluídos
-[ ] - Representa uma fronteira transacional - todas as mudanças devem ser consistentes ao fim de cada transação
+[x] - Representa uma fronteira transacional - todas as mudanças devem ser consistentes ao fim de cada transação
 [ ] - Agregados diferentes podem ser modificados em transações diferentes
 [ ] - Relacionamentos entre agregados diferentes podem ser eventualmente consistentes
 [x] - Devem ser tão pequenos quanto possível, mantendo as invariantes
@@ -29,5 +29,5 @@ Repositórios:
 [x] - Trabalham com agregados completos, não com objetos individuais
 [x] - Cada tipo de agregado geralmente tem seu próprio repositório
 [x] - Métodos comuns: adicionar, remover, buscar por ID, buscar por critérios
-[ ] - Repositórios não devem ser usados para consultas complexas - prefira leitura direta, usando um padrão como CQRS ou DAO
+[x] - Repositórios não devem ser usados para consultas complexas - prefira leitura direta, usando um padrão como CQRS ou DAO
 [ ] - Considerar usar o Unit of Work

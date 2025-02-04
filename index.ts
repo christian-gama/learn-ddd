@@ -1,32 +1,44 @@
-import { Address } from "./src/domain/common/address";
+import { OrderQuery } from "./src/application/order.query";
+import {
+	type OrderDTO,
+	OrderService,
+	type ReassignDeliveryPersonDTO,
+} from "./src/application/order.service";
 import { Id } from "./src/domain/common/id";
-import { Price } from "./src/domain/common/price";
-import { Zip } from "./src/domain/common/zip";
-import { Item } from "./src/domain/order/item";
-import { Order } from "./src/domain/order/order";
+import { PostgresOrderRepository } from "./src/infrastructure/repository/order.repository";
 
-const item = Item.create({
-	id: Id.generate(),
-	name: "Bola de basquete",
-	price: new Price(10),
-	sku: "0194618d-d752-7db0-b51e-82c0ec8846b0",
-	quantity: 1,
-	category: "Sports",
-});
+const mysqlOrderRepository = new PostgresOrderRepository();
 
-const order = Order.create({
-	id: Id.generate(),
-	address: Address.create({
-		city: "city",
-		street: "street",
-		country: "country",
-		zip: new Zip("12345678"),
-		number: "number",
-	}),
-	deliveryPersonId: new Id("1"),
-	customerId: new Id("2"),
-});
+const orderService = new OrderService(mysqlOrderRepository);
 
-order.addItem(item);
+const dto: OrderDTO = {
+	address: {
+		city: "Vitória da Conquista",
+		country: "Brasil",
+		zip: "45000-000",
+		number: "123",
+		street: "Rua 1",
+	},
+	deliveryPersonId: Bun.randomUUIDv7(),
+	customerId: Bun.randomUUIDv7(),
+	items: [
+		{
+			id: Bun.randomUUIDv7(),
+			sku: "SKU-1",
+			category: "Category 1",
+			name: "Item 1",
+			price: 10,
+			quantity: 1,
+		},
+	],
+};
 
-order.updateItemName(item.id, "Bola de futebol");
+const id = await orderService.createOrder(dto);
+
+const frontendResponse = await mysqlOrderRepository.findById(
+	Id.fromString(id),
+)!;
+
+const orderQuery = new OrderQuery();
+
+console.log(await orderQuery.frontendResponse(id));

@@ -1,0 +1,37 @@
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+model Order {
+    id               String      @id
+    customerId       String
+    deliveryPersonId String
+    address          Json
+    status           String
+    OrderItem        OrderItem[]
+}
+
+model Item {
+    id       String @id
+    name     String
+    price    Float
+    category String
+    sku      String
+
+    OrderItem OrderItem[]
+}
+
+model OrderItem {
+    id       String @id
+    orderId  String
+    itemId   String
+    quantity Int
+
+    order Order @relation(fields: [orderId], references: [id])
+    item  Item  @relation(fields: [itemId], references: [id])
+}

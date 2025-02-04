@@ -11,9 +11,17 @@ export class OrderService {
 
 	async createOrder(dto: OrderDTO): Promise<string> {
 		const order = Order.create({
-			id: await this.orderRepository.nextId(),
 			customerId: Id.fromString(dto.customerId),
 			deliveryPersonId: Id.fromString(dto.deliveryPersonId),
+			items: dto.items.map((item) =>
+				Item.create({
+					category: item.category,
+					name: item.name,
+					price: Price.fromNumber(item.price),
+					quantity: item.quantity,
+					sku: item.sku,
+				}),
+			),
 			address: Address.create({
 				street: dto.address.street,
 				city: dto.address.city,
@@ -22,19 +30,6 @@ export class OrderService {
 				number: dto.address.number,
 			}),
 		});
-
-		for (const item of dto.items) {
-			order.addItem(
-				Item.create({
-					category: item.category,
-					id: Id.fromString(item.id),
-					name: item.name,
-					price: Price.fromNumber(item.price),
-					quantity: item.quantity,
-					sku: item.sku,
-				}),
-			);
-		}
 
 		const id = await this.orderRepository.create(order);
 
@@ -56,7 +51,7 @@ export class OrderService {
 	}
 }
 
-type OrderDTO = {
+export type OrderDTO = {
 	customerId: string;
 	deliveryPersonId: string;
 	address: {
@@ -76,6 +71,6 @@ type OrderDTO = {
 	}[];
 };
 
-type ReassignDeliveryPersonDTO = {
+export type ReassignDeliveryPersonDTO = {
 	deliveryPersonId: string;
 };
