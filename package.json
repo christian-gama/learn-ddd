@@ -2,6 +2,10 @@
   "name": "learn-ddd",
   "module": "index.ts",
   "type": "module",
+  "scripts": {
+    "migrate": "bunx prisma migrate dev --name migration",
+    "generate": "bunx prisma generate"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },
