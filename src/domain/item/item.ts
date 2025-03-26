@@ -1,145 +1,149 @@
-import type { Aggregate } from "../common/aggregate";
+import { Aggregate } from "../common/aggregate";
 import { Id } from "../common/id";
 import { Price } from "../common/price";
 import type { ToJSON } from "../common/toJSON";
 
-export class Item implements Aggregate {
-  protected constructor(
-    readonly id: Id,
-    private _name: string,
-    private _price: Price,
-    private _category: string,
-    private _sku: string,
-    private _isActive: boolean,
-  ) {}
+export class Item extends Aggregate {
+	protected constructor(
+		readonly id: Id,
+		private _name: string,
+		private _price: Price,
+		private _category: string,
+		private _sku: string,
+		private _isActive: boolean,
+	) {
+		super();
+	}
 
-  static create(input: CreateItemInput) {
-    const item = new Item(
-      Id.generate(),
-      input.name,
-      input.price,
-      input.category,
-      input.sku,
-      true,
-    );
+	static create(input: CreateItemInput) {
+		const item = new Item(
+			Id.generate(),
+			input.name,
+			input.price,
+			input.category,
+			input.sku,
+			true,
+		);
 
-    item.validate();
+		item.validate();
 
-    return item;
-  }
+		return item;
+	}
 
-  static fromJSON(input: ToJSON<Item>) {
-    return new Item(
-      new Id(input.id),
-      input.name,
-      Price.fromNumber(input.price),
-      input.category,
-      input.sku,
-      input.isActive,
-    );
-  }
+	static fromJSON(input: ToJSON<Item>) {
+		return new Item(
+			new Id(input.id),
+			input.name,
+			Price.fromNumber(input.price),
+			input.category,
+			input.sku,
+			input.isActive,
+		);
+	}
 
-  toJSON() {
-    return {
-      id: this.id.toString(),
-      name: this._name,
-      price: this._price.valueOf(),
-      category: this._category,
-      sku: this._sku,
-      isActive: this._isActive,
-    };
-  }
+	toJSON() {
+		return {
+			id: this.id.toString(),
+			name: this._name,
+			price: this._price.valueOf(),
+			category: this._category,
+			sku: this._sku,
+			isActive: this._isActive,
+		};
+	}
 
-  private validate() {
-    if (this._name === undefined) {
-      throw new Error("Name is required");
-    }
+	private validate() {
+		if (this._name === undefined) {
+			throw new Error("Name is required");
+		}
 
-    if (this._price === undefined) {
-      throw new Error("Price is required");
-    }
+		if (this._price === undefined) {
+			throw new Error("Price is required");
+		}
 
-    if (this._sku === undefined) {
-      throw new Error("Sku is required");
-    }
+		if (this._sku === undefined) {
+			throw new Error("Sku is required");
+		}
 
-    if (this._price.valueOf() < 0) {
-      throw new Error("Price must be positive");
-    }
+		if (this._price.valueOf() < 0) {
+			throw new Error("Price must be positive");
+		}
 
-    if (this._category === undefined) {
-      throw new Error("Category is required");
-    }
+		if (this._category === undefined) {
+			throw new Error("Category is required");
+		}
 
-    if (this._isActive === undefined) {
-      throw new Error("isActive is required");
-    }
-  }
+		if (this._isActive === undefined) {
+			throw new Error("isActive is required");
+		}
+	}
 
-  get name() {
-    return this._name;
-  }
+	get name() {
+		return this._name;
+	}
 
-  get price() {
-    return this._price;
-  }
+	get price() {
+		return this._price;
+	}
 
-  get category() {
-    return this._category;
-  }
+	get category() {
+		return this._category;
+	}
 
-  get sku() {
-    return this._sku;
-  }
+	get sku() {
+		return this._sku;
+	}
 
-  get isActive() {
-    return this._isActive;
-  }
+	get isActive() {
+		return this._isActive;
+	}
 
-  rename(name: string) {
-    if (!name) {
-      throw new Error("Name is required");
-    }
+	rename(name: string) {
+		if (!name) {
+			throw new Error("Name is required");
+		}
 
-    this._name = name;
-  }
+		this._name = name;
+	}
 
-  changePrice(price: Price) {
-    if (price.valueOf() < 0) {
-      throw new Error("Price must be positive");
-    }
+	changePrice(price: Price) {
+		if (price.valueOf() < 0) {
+			throw new Error("Price must be positive");
+		}
 
-    this._price = price;
-  }
+		this.apply("item.PriceChanged", {});
 
-  changeCategory(category: string) {
-    if (!category) {
-      throw new Error("Category is required");
-    }
+		this._price = price;
+	}
 
-    this._category = category;
-  }
+	changeCategory(category: string) {
+		if (!category) {
+			throw new Error("Category is required");
+		}
 
-  changeSku(sku: string) {
-    if (!sku) {
-      throw new Error("Sku is required");
-    }
+		this._category = category;
+	}
 
-    this._sku = sku;
-  }
+	changeSku(sku: string) {
+		if (!sku) {
+			throw new Error("Sku is required");
+		}
 
-  activate() {
-    this._isActive = true;
-  }
+		this._sku = sku;
+	}
 
-  deactivate() {
-    this._isActive = false;
-  }
+	activate() {
+		this._isActive = true;
+	}
+
+	deactivate() {
+		this._isActive = false;
+	}
 }
 
 type CreateItemInput = {
-  name: string;
-  price: Price;
-  sku: string;
-  category: string;
+	name: string;
+	price: Price;
+	sku: string;
+	category: string;
 };

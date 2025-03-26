@@ -3,153 +3,167 @@ import { Aggregate } from "../common/aggregate";
 import { Id } from "../common/id";
 import { Price } from "../common/price";
 import type { ToJSON } from "../common/toJSON";
+import { OrderCreated } from "./order-created";
 import { OrderItem } from "./order-item";
 
 export enum OrderStatus {
-  PLACED = "PLACED",
-  DELIVERED = "DELIVERED",
-  CANCELLED = "CANCELLED",
+	PLACED = "PLACED",
+	DELIVERED = "DELIVERED",
+	CANCELLED = "CANCELLED",
 }
 
 export class Order extends Aggregate {
-  protected constructor(
-    readonly id: Id,
-    readonly customerId: Id,
-    private _deliveryPersonId: Id,
-    private _address: Address,
-    private _orderItems: OrderItem[],
-    private _status: OrderStatus,
-  ) {
-    super();
-  }
+	protected constructor(
+		readonly id: Id,
+		readonly customerId: Id,
+		private _deliveryPersonId: Id,
+		private _address: Address,
+		private _orderItems: OrderItem[],
+		private _status: OrderStatus,
+	) {
+		super();
+	}
 
-  static create(input: CreateOrderInput) {
-    if (input.orderItems.length === 0) {
-      throw new Error("Order item cannot be empty");
-    }
+	static create(input: CreateOrderInput) {
+		if (input.orderItems.length === 0) {
+			throw new Error("Order item cannot be empty");
+		}
 
-    const id = Id.generate();
+		const id = Id.generate();
 
-    return new Order(
-      id,
-      input.customerId,
-      input.deliveryPersonId,
-      input.address,
-      input.orderItems.map((item) =>
-        OrderItem.create({
-          orderId: id,
-          itemId: item.itemId,
-          quantity: item.quantity,
-          price: item.price,
-        }),
-      ),
-      OrderStatus.PLACED,
-    );
-  }
+		const order = new Order(
+			id,
+			input.customerId,
+			input.deliveryPersonId,
+			input.address,
+			input.orderItems.map((item) =>
+				OrderItem.create({
+					orderId: id,
+					itemId: item.itemId,
+					quantity: item.quantity,
+					price: item.price,
+				}),
+			),
+			OrderStatus.PLACED,
+		);
 
-  static fromJSON(input: ToJSON<Order>) {
-    const order = new Order(
-      new Id(input.id),
-      new Id(input.customerId),
-      new Id(input.deliveryPersonId),
-      Address.fromJSON(input.address),
-      input.orderItems.map(OrderItem.fromJSON),
-      input.status as OrderStatus,
-    );
+		order.apply(
+			OrderCreated.eventName,
+			new OrderCreated(
+				order.customerId,
+				order.deliveryPersonId,
+				order._address,
+				order._orderItems,
+				order._status,
+			),
+		);
 
-    return order;
-  }
+		return order;
+	}
 
-  toJSON() {
-    return {
-      id: this.id.toString(),
-      customerId: this.customerId.toString(),
-      deliveryPersonId: this.deliveryPersonId.toString(),
-      address: this._address.toJSON(),
-      orderItems: this._orderItems.map((item) => item.toJSON()),
-      status: this._status,
-    };
-  }
+	static fromJSON(input: ToJSON<Order>) {
+		const order = new Order(
+			new Id(input.id),
+			new Id(input.customerId),
+			new Id(input.deliveryPersonId),
+			Address.fromJSON(input.address),
+			input.orderItems.map(OrderItem.fromJSON),
+			input.status as OrderStatus,
+		);
 
-  addItem(item: OrderItem) {
-    const itemAlreadyExists = this._orderItems.find((i) => i.equals(item));
-    if (itemAlreadyExists) {
-      throw new Error("Item already exists");
-    }
+		return order;
+	}
 
-    this._orderItems.push(item);
-  }
+	toJSON() {
+		return {
+			id: this.id.toString(),
+			customerId: this.customerId.toString(),
+			deliveryPersonId: this.deliveryPersonId.toString(),
+			address: this._address.toJSON(),
+			orderItems: this._orderItems.map((item) => item.toJSON()),
+			status: this._status,
+		};
+	}
 
-  deleteItem(item: OrderItem) {
-    if (this._orderItems.length === 1) {
-      throw new Error("Order item cannot be empty");
-    }
+	addItem(item: OrderItem) {
+		const itemAlreadyExists = this._orderItems.find((i) => i.equals(item));
+		if (itemAlreadyExists) {
+			throw new Error("Item already exists");
+		}
 
-    const itemIndex = this._orderItems.findIndex((i) => i.equals(item));
-    if (itemIndex === -1) {
-      throw new Error("Item not found");
-    }
+		this._orderItems.push(item);
+	}
 
-    this._orderItems.splice(itemIndex, 1);
-  }
+	deleteItem(item: OrderItem) {
+		if (this._orderItems.length === 1) {
+			throw new Error("Order item cannot be empty");
+		}
 
-  calculateTotal() {
-    return this._orderItems.reduce(
-      (total, item) => total.add(item.getTotal()),
-      Price.fromNumber(0),
-    );
-  }
+		const itemIndex = this._orderItems.findIndex((i) => i.equals(item));
+		if (itemIndex === -1) {
+			throw new Error("Item not found");
+		}
 
-  reassignDeliveryPerson(deliveryPersonId: Id) {
-    switch (this._status) {
-      case OrderStatus.DELIVERED:
-        throw new Error("Cannot reassign delivery person for delivered order");
+		this._orderItems.splice(itemIndex, 1);
+	}
 
-      case OrderStatus.CANCELLED:
-        throw new Error("Cannot reassign delivery person for cancelled order");
+	calculateTotal() {
+		return this._orderItems.reduce(
+			(total, item) => total.add(item.getTotal()),
+			Price.fromNumber(0),
+		);
+	}
 
-      default:
-        this._deliveryPersonId = deliveryPersonId;
-        break;
-    }
-  }
+	reassignDeliveryPerson(deliveryPersonId: Id) {
+		switch (this._status) {
+			case OrderStatus.DELIVERED:
+				throw new Error("Cannot reassign delivery person for delivered order");
 
-  cancel() {
-    if (this._status !== OrderStatus.PLACED) {
-      throw new Error("Order is not in PLACED status");
-    }
+			case OrderStatus.CANCELLED:
+				throw new Error("Cannot reassign delivery person for cancelled order");
 
-    this._status = OrderStatus.CANCELLED;
-  }
+			default:
+				this._deliveryPersonId = deliveryPersonId;
+				break;
+		}
+	}
 
-  deliver() {
-    if (this._status !== OrderStatus.PLACED) {
-      throw new Error("Order is not in PLACED status");
-    }
+	cancel() {
+		if (this._status !== OrderStatus.PLACED) {
+			throw new Error("Order is not in PLACED status");
+		}
 
-    this._status = OrderStatus.DELIVERED;
-  }
+		this._status = OrderStatus.CANCELLED;
+	}
 
-  get status(): OrderStatus {
-    return this._status;
-  }
+	deliver() {
+		if (this._status !== OrderStatus.PLACED) {
+			throw new Error("Order is not in PLACED status");
+		}
 
-  get deliveryPersonId(): Id {
-    return this._deliveryPersonId;
-  }
+		this._status = OrderStatus.DELIVERED;
+	}
 
-  get orderItems(): ReadonlyArray<OrderItem> {
-    return this._orderItems;
-  }
+	get status(): OrderStatus {
+		return this._status;
+	}
+
+	get deliveryPersonId(): Id {
+		return this._deliveryPersonId;
+	}
+
+	get orderItems(): ReadonlyArray<OrderItem> {
+		return this._orderItems;
+	}
 }
 
 export type CreateOrderInput = {
-  customerId: Id;
-  deliveryPersonId: Id;
-  address: Address;
-  orderItems: {
-    price: Price;
-    quantity: number;
-    itemId: Id;
-  }[];
+	customerId: Id;
+	deliveryPersonId: Id;
+	address: Address;
+	orderItems: {
+		price: Price;
+		quantity: number;
+		itemId: Id;
+	}[];
 };
