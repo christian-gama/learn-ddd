@@ -11,5 +11,23 @@ services:
     volumes:
       - postgres:/var/lib/postgresql/data
 
+  nats:
+    image: nats:2-alpine
+    command: ["-m", "8222", "-js", "-sd", "/var/lib/nats/data"]
+    restart: on-failure
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    healthcheck:
+      test: wget http://localhost:8222/healthz -q -S -O -
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_interval: 1s
+      start_period: 60s
+    volumes:
+      - nats_data:/var/lib/nats/data
+
 volumes:
   postgres:
+  nats_data:
