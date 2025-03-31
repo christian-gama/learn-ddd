@@ -61,7 +61,7 @@ class EventBus {
 	}
 
 	async publish(event: IntegrationEvent<unknown>) {
-		this.js.publish(event.name, this.jc.encode(event));
+		await this.js.publish(event.name, this.jc.encode(event));
 	}
 
 	async subscribe<T>(
