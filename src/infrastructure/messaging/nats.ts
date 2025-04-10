@@ -1,4 +1,3 @@
-import { randomUUIDv7 } from "bun";
 import {
 	AckPolicy,
 	type Consumer,
@@ -13,49 +12,19 @@ import {
 	ReplayPolicy,
 	connect,
 } from "nats";
+import type { IntegrationEvent } from "../../../libs/events/integration.event";
 
-async function run() {
-	const nc = await connect({
-		servers: "nats://fedora:4222",
-	});
-
-	const eventBus = new EventBus(nc);
-	await eventBus.init();
-
-	await eventBus.subscribe("foo", "fooHandler", async (event) => {
-		console.log("Received event", event);
-	});
-
-	await eventBus.publish(
-		new IntegrationEvent("foo", { message: "Hello, World!" }),
-	);
-
-	setTimeout(async () => {
-		await eventBus.close();
-	}, 1200);
-}
-
-await run().catch(console.error);
-
-class IntegrationEvent<T> {
-	readonly id = randomUUIDv7().toString();
-	readonly occurredAt = new Date();
-
-	constructor(
-		readonly name: string,
-		readonly payload: T,
-	) {}
-}
-
-class EventBus {
+export class EventBus {
 	private jc = JSONCodec<IntegrationEvent<unknown>>();
 	private jsm!: JetStreamManager;
 	private js!: JetStreamClient;
 	private messages: Map<string, ConsumerMessages> = new Map();
-
-	constructor(private readonly nc: NatsConnection) {}
+	private nc!: NatsConnection;
 
 	async init() {
+		this.nc = await connect({
+			servers: "nats://fedora:4222",
+		});
 		this.js = this.nc.jetstream();
 		this.jsm = await this.nc.jetstreamManager();
 	}
