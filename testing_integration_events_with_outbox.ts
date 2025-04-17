@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { sleep } from "bun";
+import { randomUUIDv7, sleep } from "bun";
 import { IntegrationEvent } from "./libs/events/integration.event";
 import { EventBus } from "./src/infrastructure/messaging/nats";
 
@@ -11,7 +11,7 @@ const failed = 0;
 const processedEvents = new Set<string>();
 
 async function run() {
-	await eventBus.subscribe("foo", "fooHandler", async (event) => {
+	await eventBus.subscribe("item_created", "myHandler", async (event) => {
 		console.log("===========================================================");
 		console.log("Received event", event);
 
@@ -28,19 +28,39 @@ async function run() {
 	// 	new IntegrationEvent("foo", { message: "Hello, World!" }),
 	// );
 
-	const event = new IntegrationEvent("foo", { message: "Hello, World!" });
+	await prisma.$transaction(async (tx) => {
+		const item = await tx.item.create({
+			data: {
+				id: randomUUIDv7(),
+				name: "foo",
+				category: "bar",
+				price: 5,
+				isActive: true,
+				sku: "1234567890",
+			},
+		});
 
-	console.log("===========================================================");
-	console.log("creating event", event);
+		const event = new IntegrationEvent("item_created", {
+			id: item.id,
+			name: item.name,
+			category: item.category,
+			price: item.price,
+			isActive: item.isActive,
+			sku: item.sku,
+		});
 
-	await prisma.outbox.create({
-		data: {
-			id: event.id,
-			eventName: event.name,
-			occurredAt: event.occurredAt,
-			payload: event.payload,
-			status: "pending",
-		},
+		console.log("===========================================================");
+		console.log("creating event", event);
+
+		await tx.outbox.create({
+			data: {
+				id: event.id,
+				eventName: event.name,
+				occurredAt: event.occurredAt,
+				payload: event.payload,
+				status: "pending",
+			},
+		});
 	});
 
 	console.log("created event (saved on outbox table)");
