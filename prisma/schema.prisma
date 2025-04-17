@@ -31,3 +31,13 @@ model Item {
 
   @@index([isActive])
 }
+
+model Outbox {
+  id         String   @id
+  eventName  String
+  payload    Json
+  status     String
+  occurredAt DateTime
+
+  @@index([status, occurredAt])
+}
