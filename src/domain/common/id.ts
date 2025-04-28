@@ -1,9 +1,19 @@
 import type { ValueObject } from "./value-object";
 
 export class Id implements ValueObject {
-	constructor(readonly value: string) {
+	private constructor(private readonly value: string) {
 		if (value === undefined) {
 			throw new Error("Id is required");
+		}
+
+		if (value.length === 0) {
+			throw new Error("Id cannot be empty");
+		}
+
+		const uuidRegex =
+			/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+		if (!uuidRegex.test(value)) {
+			throw new Error("Id must be a valid UUID");
 		}
 	}
 
