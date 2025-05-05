@@ -32,7 +32,7 @@ export class Item extends Aggregate {
 
 	static fromJSON(input: ToJSON<Item>) {
 		return new Item(
-			new Id(input.id),
+			Id.fromString(input.id),
 			input.name,
 			Price.fromNumber(input.price),
 			input.category,

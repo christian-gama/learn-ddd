@@ -22,8 +22,8 @@ export class OrderItem implements ValueObject {
 
 	static fromJSON(input: ToJSON<OrderItem>) {
 		return new OrderItem(
-			new Id(input.orderId),
-			new Id(input.itemId),
+			Id.fromString(input.orderId),
+			Id.fromString(input.itemId),
 			input.quantity,
 			Price.fromNumber(input.price),
 		);

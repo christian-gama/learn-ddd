@@ -1,41 +1,65 @@
 import type { ValueObject } from "./value-object";
 
 export class Price implements ValueObject {
-  private cents: number;
+	readonly cents: number;
 
-  protected constructor(value: number) {
-    this.cents = Math.round(value * 100);
-  }
+	protected constructor(value: number) {
+		if (value > Number.MAX_SAFE_INTEGER / 100) {
+			throw new Error("Value exceeds maximum safe integer");
+		}
 
-  static fromNumber(value: number) {
-    return new Price(value);
-  }
+		if (value < Number.MIN_SAFE_INTEGER / 100) {
+			throw new Error("Value is less than minimum safe integer");
+		}
 
-  add(amount: Price) {
-    return new Price(this.valueOf() + amount.valueOf());
-  }
+		this.cents = Math.round(value * 100);
+	}
 
-  sub(amount: Price) {
-    return new Price(this.valueOf() - amount.valueOf());
-  }
+	static fromNumber(value: number) {
+		return new Price(value);
+	}
 
-  multiply(value: number) {
-    return new Price(this.valueOf() * value);
-  }
+	add(amount: Price) {
+		if (amount.cents < 0) {
+			throw new Error("Cannot add a negative amount");
+		}
 
-  divide(value: number) {
-    return new Price(this.valueOf() / value);
-  }
+		return new Price(this.valueOf() + amount.valueOf());
+	}
 
-  discount(value: number) {
-    return new Price(this.valueOf() * (1 - value));
-  }
+	sub(amount: Price) {
+		if (amount.cents < 0) {
+			throw new Error("Cannot subtract a negative amount");
+		}
 
-  equals(other: this): boolean {
-    return other.cents === this.cents;
-  }
+		return new Price(this.valueOf() - amount.valueOf());
+	}
 
-  valueOf() {
-    return this.cents / 100;
-  }
+	multiply(value: number) {
+		return new Price(this.valueOf() * value);
+	}
+
+	divide(value: number) {
+		if (value === 0) {
+			throw new Error("Cannot divide by zero");
+		}
+
+		return new Price(this.valueOf() / value);
+	}
+
+	discount(value: number) {
+		if (value < 0 || value > 1) {
+			throw new Error("Discount must be between 0 and 1");
+		}
+
+		return new Price(this.valueOf() * (1 - value));
+	}
+
+	equals(other: this): boolean {
+		return other.cents === this.cents;
+	}
+
+	valueOf() {
+		return this.cents / 100;
+	}
 }

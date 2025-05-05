@@ -7,9 +7,9 @@ import { OrderCreated } from "./order-created";
 import { OrderItem } from "./order-item";
 
 export enum OrderStatus {
-	PLACED = "PLACED",
-	DELIVERED = "DELIVERED",
-	CANCELLED = "CANCELLED",
+	Placed = "PLACED",
+	Delivered = "DELIVERED",
+	Cancelled = "CANCELLED",
 }
 
 export class Order extends Aggregate {
@@ -44,12 +44,13 @@ export class Order extends Aggregate {
 					price: item.price,
 				}),
 			),
-			OrderStatus.PLACED,
+			OrderStatus.Placed,
 		);
 
 		order.apply(
 			OrderCreated.eventName,
 			new OrderCreated(
+				order.id,
 				order.customerId,
 				order.deliveryPersonId,
 				order._address,
@@ -63,9 +64,9 @@ export class Order extends Aggregate {
 
 	static fromJSON(input: ToJSON<Order>) {
 		const order = new Order(
-			new Id(input.id),
-			new Id(input.customerId),
-			new Id(input.deliveryPersonId),
+			Id.fromString(input.id),
+			Id.fromString(input.customerId),
+			Id.fromString(input.deliveryPersonId),
 			Address.fromJSON(input.address),
 			input.orderItems.map(OrderItem.fromJSON),
 			input.status as OrderStatus,
@@ -116,10 +117,10 @@ export class Order extends Aggregate {
 
 	reassignDeliveryPerson(deliveryPersonId: Id) {
 		switch (this._status) {
-			case OrderStatus.DELIVERED:
+			case OrderStatus.Delivered:
 				throw new Error("Cannot reassign delivery person for delivered order");
 
-			case OrderStatus.CANCELLED:
+			case OrderStatus.Cancelled:
 				throw new Error("Cannot reassign delivery person for cancelled order");
 
 			default:
@@ -129,19 +130,19 @@ export class Order extends Aggregate {
 	}
 
 	cancel() {
-		if (this._status !== OrderStatus.PLACED) {
+		if (this._status !== OrderStatus.Placed) {
 			throw new Error("Order is not in PLACED status");
 		}
 
-		this._status = OrderStatus.CANCELLED;
+		this._status = OrderStatus.Cancelled;
 	}
 
 	deliver() {
-		if (this._status !== OrderStatus.PLACED) {
+		if (this._status !== OrderStatus.Placed) {
 			throw new Error("Order is not in PLACED status");
 		}
 
-		this._status = OrderStatus.DELIVERED;
+		this._status = OrderStatus.Delivered;
 	}
 
 	get status(): OrderStatus {

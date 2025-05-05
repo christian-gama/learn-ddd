@@ -15,7 +15,7 @@ export class Customer extends Aggregate {
 	}
 
 	static fromJSON(input: ToJSON<Customer>) {
-		return new Customer(new Id(input.id), input.name);
+		return new Customer(Id.fromString(input.id), input.name);
 	}
 
 	toJSON() {

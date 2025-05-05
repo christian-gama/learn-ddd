@@ -9,6 +9,7 @@ export class OrderCreated {
 	static eventName = OrderCreatedEvent;
 
 	constructor(
+		readonly id: Id,
 		readonly customerId: Id,
 		readonly deliveryPersonId: Id,
 		readonly address: Address,
