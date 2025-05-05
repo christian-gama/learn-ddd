@@ -78,7 +78,7 @@ describe("Order", () => {
 	it("should apply the order.Created event", async () => {
 		const publishSpy = jest
 			.spyOn(EventDispatcher, "publish")
-			.mockResolvedValue();
+			.mockResolvedValueOnce();
 		const input = {
 			address: Address.create({
 				street: "Rua 1",
@@ -101,6 +101,7 @@ describe("Order", () => {
 		const result = Order.create(input);
 		await result.publish();
 
+		expect(publishSpy).toHaveBeenCalledTimes(1);
 		expect(publishSpy).toHaveBeenCalledWith(
 			expect.objectContaining({
 				name: "order.Created",
