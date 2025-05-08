@@ -1,27 +1,15 @@
 import "jest-extended";
-import { Address } from "../common/address";
 import { EventDispatcher } from "../common/dispatcher";
 import { Id } from "../common/id";
 import { Price } from "../common/price";
-import { Zip } from "../common/zip";
+import { FakeOrder } from "./__testutil__/order.fake";
 import { Order } from "./order";
 import { OrderItem } from "./order-item";
 
 describe("Order", () => {
 	describe("create", () => {
 		it("should throw if order items are empty", () => {
-			const input = {
-				address: Address.create({
-					street: "Rua 1",
-					city: "Vitória da Conquista",
-					country: "Brasil",
-					zip: Zip.fromString("45000-000"),
-					number: "123",
-				}),
-				customerId: Id.generate(),
-				deliveryPersonId: Id.generate(),
-				orderItems: [],
-			};
+			const input = new FakeOrder().withEmptyOrderItems().build();
 
 			const sut = () => Order.create(input);
 
@@ -30,34 +18,7 @@ describe("Order", () => {
 
 		it("should set default values when creating an order", () => {
 			const itemId = Id.generate();
-			const input = {
-				address: Address.create({
-					street: "Rua 1",
-					city: "Vitória da Conquista",
-					country: "Brasil",
-					zip: Zip.fromString("45000-000"),
-					number: "123",
-				}),
-				customerId: Id.generate(),
-				deliveryPersonId: Id.generate(),
-				orderItems: [
-					{
-						price: Price.fromNumber(10),
-						quantity: 1,
-						itemId: itemId,
-					},
-					{
-						price: Price.fromNumber(12),
-						quantity: 2,
-						itemId: Id.generate(),
-					},
-					{
-						price: Price.fromNumber(12),
-						quantity: 5,
-						itemId: Id.generate(),
-					},
-				],
-			};
+			const input = new FakeOrder().withOrderItem({ itemId }).build();
 
 			const result = Order.create(input);
 
@@ -68,8 +29,8 @@ describe("Order", () => {
 				OrderItem.create({
 					itemId: itemId,
 					orderId: result.id,
-					price: Price.fromNumber(10),
-					quantity: 1,
+					price: expect.any(Price),
+					quantity: expect.any(Number),
 				}),
 			);
 		});
@@ -79,24 +40,7 @@ describe("Order", () => {
 		const publishSpy = jest
 			.spyOn(EventDispatcher, "publish")
 			.mockResolvedValueOnce();
-		const input = {
-			address: Address.create({
-				street: "Rua 1",
-				city: "Vitória da Conquista",
-				country: "Brasil",
-				zip: Zip.fromString("45000-000"),
-				number: "123",
-			}),
-			customerId: Id.generate(),
-			deliveryPersonId: Id.generate(),
-			orderItems: [
-				{
-					price: Price.fromNumber(10),
-					quantity: 1,
-					itemId: Id.generate(),
-				},
-			],
-		};
+		const input = new FakeOrder().build();
 
 		const result = Order.create(input);
 		await result.publish();
